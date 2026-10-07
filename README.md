@@ -41,3 +41,9 @@ Tests cover integrity verification, injection-safe output, unsafe paths, atomic 
 ## License
 
 MIT © cent
+
+## Current limitations
+
+- The output is a static viewer and does not mint, trade, authenticate ownership, or query live chain state.
+- Gallery integrity covers the supplied NFTForger build, not external hosting availability.
+- Large collections may require additional pagination, image optimization, or CDN configuration.
