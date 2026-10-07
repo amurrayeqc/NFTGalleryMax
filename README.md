@@ -1,14 +1,14 @@
-# NFTGalleryMax
+# TokenGalleryLens
 
-[![CI](https://github.com/centxyz/NFTGalleryMax/actions/workflows/ci.yml/badge.svg)](https://github.com/centxyz/NFTGalleryMax/actions/workflows/ci.yml)
+[![CI](https://github.com/centxyz/TokenGalleryLens/actions/workflows/ci.yml/badge.svg)](https://github.com/centxyz/TokenGalleryLens/actions/workflows/ci.yml)
 
-NFTGalleryMax turns a verified [NFTForger](https://github.com/centxyz/NFTForger) collection build into a responsive static gallery. It rechecks every source hash, copies only declared collection assets, and emits a site with search, trait filters, sorting, item details, and no backend.
+TokenGalleryLens turns a verified [NFTForger](https://github.com/centxyz/NFTForger) collection build into a responsive static gallery. It rechecks every source hash, copies only declared collection assets, and emits a site with search, trait filters, sorting, item details, and no backend.
 
 ## Build a gallery
 
 ```bash
-git clone https://github.com/centxyz/NFTGalleryMax.git
-cd NFTGalleryMax
+git clone https://github.com/centxyz/TokenGalleryLens.git
+cd TokenGalleryLens
 npm install
 
 npm start -- build \
