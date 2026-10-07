@@ -1,58 +1,18 @@
-// src/index.js
-/**
- * Main entry point for NFTGalleryMax
- */
+#!/usr/bin/env node
+const minimist = require('minimist'); const { NFTGalleryMax } = require('./nftgallerymax');
+const help = `NFTGalleryMax — build a static gallery from an NFTForger collection
 
-const { NFTGalleryMax } = require('./nftgallerymax');
-const minimist = require('minimist');
+Usage:
+  nftgallerymax build --source ./collection-build --output ./gallery [--force]
 
-const args = minimist(process.argv.slice(2), {
-    boolean: ['verbose', 'help'],
-    alias: {
-        v: 'verbose',
-        h: 'help',
-        i: 'input',
-        o: 'output'
-    }
-});
-
+Serve the result with any static host, for example:
+  python3 -m http.server --directory ./gallery 8080`;
 async function main() {
-    try {
-        if (args.help) {
-            console.log('Usage: node src/index.js [options]');
-            console.log('Options:');
-            console.log('  -v, --verbose   Enable verbose logging');
-            console.log('  -i, --input     Input file path');
-            console.log('  -o, --output    Output file path');
-            console.log('  -h, --help      Show this help message');
-            process.exit(0);
-        }
-
-        const app = new NFTGalleryMax({
-            verbose: args.verbose || false
-        });
-
-        if (args.verbose) {
-            console.log('Starting NFTGalleryMax processing...');
-        }
-
-        const result = await app.execute();
-        
-        if (args.output) {
-            console.log(`Results saved to: ${args.output}`);
-        }
-
-        console.log('✅ Processing completed successfully');
-        process.exit(0);
-    } catch (error) {
-        console.error('❌ Error:', error.message);
-        if (args.verbose) {
-            console.error(error.stack);
-        }
-        process.exit(1);
-    }
+  const args = minimist(process.argv.slice(2), { string: ['source','output'], boolean: ['force','help'], alias: { h: 'help' } });
+  if (args.help || !args._[0]) { console.log(help); return; }
+  if (args._[0] !== 'build' || !args.source || !args.output) throw new GalleryError('build requires --source and --output', 'INPUT');
+  console.log(JSON.stringify(await new NFTGalleryMax().build(args.source, args.output, { force: args.force }), null, 2));
 }
-
-if (require.main === module) {
-    main();
-}
+const { GalleryError } = require('./nftgallerymax');
+if (require.main === module) main().catch(error => { console.error(JSON.stringify({ error: error.message, code: error.code || 'INTERNAL' })); process.exitCode = 1; });
+module.exports = { main };

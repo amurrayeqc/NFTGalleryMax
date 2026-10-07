@@ -1,14 +1,12 @@
 {
   "name": "nftgallerymax",
   "version": "1.0.0",
-  "description": "NFTGalleryMax JavaScript starter processor with retry scaffolding",
-  "main": "src/index.js",
+  "description": "Verified static NFT gallery generator",
+  "main": "src/nftgallerymax.js",
+  "bin": { "nftgallerymax": "src/index.js" },
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "node --test tests/*.test.js"
   },
   "keywords": [
     "javascript",
@@ -19,9 +17,5 @@
   "license": "MIT",
   "dependencies": {
     "minimist": "^1.2.8"
-  },
-  "devDependencies": {
-    "jest": "^29.7.0",
-    "nodemon": "^3.0.1"
   }
 }

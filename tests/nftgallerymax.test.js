@@ -1,31 +1,13 @@
-// tests/nftgallerymax.test.js
-/**
- * Tests for NFTGalleryMax module
- */
-
-const { NFTGalleryMax } = require('../src/nftgallerymax');
-
-describe('NFTGalleryMax', () => {
-    let instance;
-
-    beforeEach(() => {
-        instance = new NFTGalleryMax({ verbose: false });
-    });
-
-    test('should create instance with default config', () => {
-        expect(instance).toBeDefined();
-        expect(instance.timeout).toBe(30000);
-        expect(instance.maxRetries).toBe(3);
-    });
-
-    test('should execute successfully', async () => {
-        const result = await instance.execute();
-        expect(result.success).toBe(true);
-        expect(result.message).toBeTruthy();
-    });
-
-    test('should process data', async () => {
-        const result = await instance.process();
-        expect(result.processed).toBe(true);
-    });
-});
+const test = require('node:test'); const assert = require('node:assert/strict'); const { mkdtemp, mkdir, readFile, writeFile } = require('node:fs/promises'); const { tmpdir } = require('node:os'); const { join } = require('node:path');
+const { NFTGalleryMax, GalleryError, sha256 } = require('../src/nftgallerymax');
+async function fixture() {
+  const root = await mkdtemp(join(tmpdir(), 'nftgallery-')); const source = join(root, 'source'); const output = join(root, 'gallery'); await mkdir(join(source, 'metadata'), { recursive: true }); await mkdir(join(source, 'images'), { recursive: true });
+  await writeFile(join(source, 'images/1.svg'), '<svg xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="lime"/></svg>');
+  await writeFile(join(source, 'metadata/1.json'), JSON.stringify({ name: '<img src=x onerror=alert(1)>', description: 'Safe as text', image: 'images/1.svg', attributes: [{ trait_type: 'Color', value: 'Lime' }] }));
+  const files = { 'images/1.svg': await sha256(join(source, 'images/1.svg')), 'metadata/1.json': await sha256(join(source, 'metadata/1.json')) };
+  await writeFile(join(source, 'manifest.json'), JSON.stringify({ schema: 1, collection: { name: 'Test Gallery', description: 'Verified art' }, tokens: [{ token_id: 1, metadata: 'metadata/1.json', image: 'images/1.svg' }], files })); return { root, source, output };
+}
+test('builds a searchable static gallery from a verified collection', async () => { const { source, output } = await fixture(); const result = await new NFTGalleryMax().build(source, output); assert.equal(result.items, 1); const data = JSON.parse(await readFile(join(output, 'gallery.json'))); assert.equal(data.items[0].name, '<img src=x onerror=alert(1)>'); assert.equal(data.items[0].image, 'assets/1.svg'); const app = await readFile(join(output, 'app.js'), 'utf8'); assert.match(app, /textContent/); assert.doesNotMatch(await readFile(join(output, 'index.html'), 'utf8'), /onerror/); });
+test('refuses a collection with a modified source file', async () => { const { source, output } = await fixture(); await writeFile(join(source, 'images/1.svg'), 'tampered'); await assert.rejects(new NFTGalleryMax().build(source, output), error => error instanceof GalleryError && error.code === 'INTEGRITY'); });
+test('protects output and supports explicit replacement', async () => { const { source, output } = await fixture(); const gallery = new NFTGalleryMax(); await gallery.build(source, output); await assert.rejects(gallery.build(source, output), error => error.code === 'OUTPUT_EXISTS'); assert.equal((await gallery.build(source, output, { force: true })).items, 1); });
+test('rejects traversal in manifest paths', async () => { const { source, output } = await fixture(); const manifest = JSON.parse(await readFile(join(source, 'manifest.json'))); manifest.tokens[0].metadata = '../secret.json'; await writeFile(join(source, 'manifest.json'), JSON.stringify(manifest)); await assert.rejects(new NFTGalleryMax().build(source, output), error => error.code === 'UNSAFE_PATH'); });
